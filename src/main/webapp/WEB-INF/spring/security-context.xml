@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:security="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans.xsd
+                           http://www.springframework.org/schema/security
+                           http://www.springframework.org/schema/security/spring-security-3.1.xsd">
+	
+    <security:global-method-security secured-annotations="enabled" />
+    
+    <security:http auto-config="true">
+        <!-- Restrict URLs based on role -->
+        <security:intercept-url pattern="/a/**" access="ROLE_USER"/>
+        <!-- Override default login and logout pages -->
+        <security:form-login
+				default-target-url='/home.html'
+				always-use-default-target='false'
+				authentication-failure-url="/home.html"/>
+		<security:anonymous />
+        <security:logout logout-success-url="/home.html"/>
+    </security:http>
+    
+    <security:authentication-manager alias='authenticationManager'>
+		<security:authentication-provider ref='cubieAuthenticationProvider' />
+	</security:authentication-manager>
+	
+    <bean id='cubieAuthenticationProvider'
+		class='br.com.rpiautom.login.CubieAuthenticationProvider' />
+</beans>
