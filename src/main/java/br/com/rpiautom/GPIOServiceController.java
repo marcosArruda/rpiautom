@@ -9,41 +9,45 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import br.com.rpiautom.gpio.CommandExecutor;
 import br.com.rpiautom.gpio.PinMapper;
 
+import com.pi4j.io.gpio.GpioController;
+import com.pi4j.io.gpio.GpioFactory;
+import com.pi4j.io.gpio.GpioPinDigitalOutput;
+import com.pi4j.io.gpio.PinState;
+import com.pi4j.io.gpio.RaspiPin;
+
 /**
- * Handles requests for to the gpio.
+ * Handles requests to the gpio.
  */
 @Controller
 @RequestMapping("/gpio")
 public class GPIOServiceController {
 	
-	@RequestMapping(value = "/activate", method = RequestMethod.GET)
-	@ResponseBody
-	public String activate(@RequestParam("pin") int pin) {
-		// URI : /gpio/activate?pin=67
-		return CommandExecutor.execute("echo " + pin + " > /sys/class/gpio/export");
-	}
+	// create gpio controller instance
+	//TODO: Injetar isso.
+	final GpioController gpio = GpioFactory.getInstance();
 	
-	@RequestMapping(value = "/set-direction", method = RequestMethod.GET)
+	@RequestMapping(value = "/led-toggle", method = RequestMethod.GET)
 	@ResponseBody
-	public String setDirection(@RequestParam("pin") int pin, @RequestParam("dir") String dir) {
-		// URI : /gpio/set-direction?pin=67&dir=out
-		String pinName = PinMapper.getPinName(pin);
-		return CommandExecutor.execute("echo " + dir + " > /sys/class/gpio/" + pinName + "/direction");
-	}
-	
-	@RequestMapping(value = "/set-value", method = RequestMethod.GET)
-	@ResponseBody
-	public String setValue(@RequestParam("pin") int pin, @RequestParam("val") int val) {
-		// URI : /gpio/set-value?pin=67&val=1
-		String pinName = PinMapper.getPinName(pin);
-		return CommandExecutor.execute("echo " + val + " > /sys/class/gpio/" + pinName + "/value");
-	}
-	
-	@RequestMapping(value = "/get-value", method = RequestMethod.GET)
-	@ResponseBody
-	public String readValue(@RequestParam("pin") int pin) {
-		// URI : /gpio/get-value?pin=67
-		String pinName = PinMapper.getPinName(pin);
-		return CommandExecutor.execute("cat /sys/class/gpio/" + pinName + "/value");
+	public String activate() {
+		// URI : /gpio/activate
+		
+		// provision gpio pins #04 as an output pin and make sure is is set to LOW at startup
+		GpioPinDigitalOutput myLed = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_04,   // PIN NUMBER
+		                                                           "My LED");           // PIN FRIENDLY NAME (optional)
+		 // explicitly set a state on the pin object
+        //myLed.setState(PinState.HIGH);
+
+        // use convenience wrapper method to set state on the pin object
+        //myLed.low();
+        //myLed.high();
+
+        // use toggle method to apply inverse state on the pin object
+        myLed.toggle();
+
+        // use pulse method to set the pin to the HIGH state for
+        // an explicit length of time in milliseconds
+        //myLed.pulse(1000);
+        
+        return "OK";
 	}
 }
