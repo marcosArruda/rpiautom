@@ -62,7 +62,13 @@ public class GPIOServiceController {
 	@RequestMapping(value = "/arduino0", method = RequestMethod.GET)
 	@ResponseBody
 	public String getArduino0Response() {
-		return DataStatic.lastArduinoResponse;
+		return DataStatic.lastArduino0Response;
+	}
+	
+	@RequestMapping(value = "/arduino1", method = RequestMethod.GET)
+	@ResponseBody
+	public String getArduino1Response() {
+		return DataStatic.lastArduino1Response;
 	}
 
 	@RequestMapping(value = "/hello-arduino0", method = RequestMethod.GET)
@@ -77,15 +83,47 @@ public class GPIOServiceController {
 			public void dataReceived(SerialDataEvent event) {
 				// print out the data received to the console
 				System.out.print(event.getData());
-				DataStatic.lastArduinoResponse = event.getData();
+				DataStatic.lastArduino0Response = event.getData();
 				ledOn();
 			}
 		});
 
 		try {
-			serial.open("/dev/ttyUSB0", 38400);
+			serial.open("/dev/ttyUSB0", 9600);
 			try {
-				serial.write("Ola Arduino");
+				serial.write("Ola Arduino0");
+			} catch (IllegalStateException ex) {
+				ex.printStackTrace();
+				return " ==>> SERIAL SETUP SUCCESS BUT...: " + ex.getMessage();
+			}
+		} catch (SerialPortException ex) {
+			System.out.println();
+			return " ==>> SERIAL SETUP FAILED : " + ex.getMessage();
+		}
+		return " ==>> SERIAL SETUP SUCCESS AND MESSAGE SEND!";
+	}
+	
+	@RequestMapping(value = "/hello-arduino1", method = RequestMethod.GET)
+	@ResponseBody
+	public String sendHelloToArduino1() {
+
+		final Serial serial = SerialFactory.createInstance();
+
+		// create and register the serial data listener
+		serial.addListener(new SerialDataListener() {
+			@Override
+			public void dataReceived(SerialDataEvent event) {
+				// print out the data received to the console
+				System.out.print(event.getData());
+				DataStatic.lastArduino1Response = event.getData();
+				ledOn();
+			}
+		});
+
+		try {
+			serial.open("/dev/ttyUSB1", 9600);
+			try {
+				serial.write("Ola Arduino1");
 			} catch (IllegalStateException ex) {
 				ex.printStackTrace();
 				return " ==>> SERIAL SETUP SUCCESS BUT...: " + ex.getMessage();

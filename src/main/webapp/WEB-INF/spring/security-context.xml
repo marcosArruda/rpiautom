@@ -26,5 +26,5 @@
 	</security:authentication-manager>
 	
     <bean id='cubieAuthenticationProvider'
-		class='br.com.rpiautom.login.CubieAuthenticationProvider' />
+		class='br.com.rpiautom.login.RPiAuthenticationProvider' />
 </beans>

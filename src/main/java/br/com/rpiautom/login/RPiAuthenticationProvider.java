@@ -12,7 +12,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 
-public class CubieAuthenticationProvider implements AuthenticationProvider{
+public class RPiAuthenticationProvider implements AuthenticationProvider{
 	private static final List<GrantedAuthority> AUTHORITIES = new ArrayList<GrantedAuthority>();
 
 	static
@@ -46,7 +46,7 @@ public class CubieAuthenticationProvider implements AuthenticationProvider{
 	
 	private boolean testMarcos(String user, String senha)
 	{
-		return user.equals("marcos") && senha.equals("200510casa");
+		return user.equals("marcos") && senha.equals("123");
 	}
 	
 	private boolean testOlivia(String user, String senha)
@@ -61,11 +61,11 @@ public class CubieAuthenticationProvider implements AuthenticationProvider{
 	
 	private boolean testWaldemar(String user, String senha)
 	{
-		return user.equals("waldemar") && senha.equals("wal1293");
+		return user.equals("waldemar") && senha.equals("123");
 	}
 	
 	private boolean testMae(String user, String senha)
 	{
-		return user.equals("cristina") && senha.equals("biobedas");
+		return user.equals("cristina") && senha.equals("123");
 	}
 }
