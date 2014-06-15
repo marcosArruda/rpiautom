@@ -1,23 +1,21 @@
 package br.com.rpiautom;
 
 import java.util.Collection;
-import java.util.Date;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import br.com.rpiautom.serial.arduino.Arduino;
+import br.com.rpiautom.serial.arduino.ArduinoAction;
+
 import com.pi4j.io.gpio.GpioController;
-import com.pi4j.io.gpio.GpioFactory;
 import com.pi4j.io.gpio.GpioPin;
 import com.pi4j.io.gpio.GpioPinDigitalOutput;
 import com.pi4j.io.gpio.RaspiPin;
-import com.pi4j.io.serial.Serial;
-import com.pi4j.io.serial.SerialDataEvent;
-import com.pi4j.io.serial.SerialDataListener;
-import com.pi4j.io.serial.SerialFactory;
-import com.pi4j.io.serial.SerialPortException;
 
 /**
  * Handles requests to the gpio. /gpio/led-on.html /gpio/led-off.html
@@ -25,11 +23,36 @@ import com.pi4j.io.serial.SerialPortException;
 @Controller
 @RequestMapping("/gpio")
 public class GPIOServiceController {
-	// create gpio controller instance
-	// TODO: Injetar isso.
-
-	static final GpioController gpio = GpioFactory.getInstance();
-
+	@Autowired
+	@Qualifier("gpioController")
+	private GpioController gpio;
+	
+	@Autowired
+	@Qualifier("arduino0")
+	private Arduino arduino0;
+	
+	@Autowired
+	@Qualifier("arduino1")
+	private Arduino arduino1;
+	
+	@RequestMapping(value = "/test-led13-on", method = RequestMethod.GET)
+	@ResponseBody
+	public String turnLed13On() {
+		return arduino0.applyAction(ArduinoAction.ON13, "liga 0!") + " " +
+		arduino1.applyAction(ArduinoAction.ON13, "liga 1!");
+	}
+	
+	@RequestMapping(value = "/test-led13-off", method = RequestMethod.GET)
+	@ResponseBody
+	public String turnLed13Off() {
+		return arduino0.applyAction(ArduinoAction.OFF13, "desliga 0!") + " " +
+				arduino1.applyAction(ArduinoAction.OFF13, "desliga 1!");
+	}
+	/**
+	 * ====================================================================================================
+	 * legacy resources
+	 * ====================================================================================================
+	 */
 	@RequestMapping(value = "/led-on", method = RequestMethod.GET)
 	@ResponseBody
 	public String ledOn() {
@@ -50,7 +73,7 @@ public class GPIOServiceController {
 		myLed.high();
 		return "led ON";
 	}
-
+	
 	@RequestMapping(value = "/led-off", method = RequestMethod.GET)
 	@ResponseBody
 	public String ledOff() {
@@ -58,85 +81,11 @@ public class GPIOServiceController {
 		myLed.low();
 		return "led OFF";
 	}
-	
-	@RequestMapping(value = "/arduino0", method = RequestMethod.GET)
-	@ResponseBody
-	public String getArduino0Response() {
-		return DataStatic.lastArduino0Response;
-	}
-	
-	@RequestMapping(value = "/arduino1", method = RequestMethod.GET)
-	@ResponseBody
-	public String getArduino1Response() {
-		return DataStatic.lastArduino1Response;
-	}
-
-	@RequestMapping(value = "/hello-arduino0", method = RequestMethod.GET)
-	@ResponseBody
-	public String sendHelloToArduino0() {
-
-		final Serial serial = SerialFactory.createInstance();
-
-		// create and register the serial data listener
-		serial.addListener(new SerialDataListener() {
-			@Override
-			public void dataReceived(SerialDataEvent event) {
-				// print out the data received to the console
-				System.out.print(event.getData());
-				DataStatic.lastArduino0Response = event.getData();
-				ledOn();
-			}
-		});
-
-		try {
-			serial.open("/dev/ttyUSB0", 9600);
-			try {
-				serial.write("Ola Arduino0");
-			} catch (IllegalStateException ex) {
-				ex.printStackTrace();
-				return " ==>> SERIAL SETUP SUCCESS BUT...: " + ex.getMessage();
-			}
-		} catch (SerialPortException ex) {
-			System.out.println();
-			return " ==>> SERIAL SETUP FAILED : " + ex.getMessage();
-		}
-		return " ==>> SERIAL SETUP SUCCESS AND MESSAGE SEND!";
-	}
-	
-	@RequestMapping(value = "/hello-arduino1", method = RequestMethod.GET)
-	@ResponseBody
-	public String sendHelloToArduino1() {
-
-		final Serial serial = SerialFactory.createInstance();
-
-		// create and register the serial data listener
-		serial.addListener(new SerialDataListener() {
-			@Override
-			public void dataReceived(SerialDataEvent event) {
-				// print out the data received to the console
-				System.out.print(event.getData());
-				DataStatic.lastArduino1Response = event.getData();
-				ledOn();
-			}
-		});
-
-		try {
-			serial.open("/dev/ttyUSB1", 9600);
-			try {
-				serial.write("Ola Arduino1");
-			} catch (IllegalStateException ex) {
-				ex.printStackTrace();
-				return " ==>> SERIAL SETUP SUCCESS BUT...: " + ex.getMessage();
-			}
-		} catch (SerialPortException ex) {
-			System.out.println();
-			return " ==>> SERIAL SETUP FAILED : " + ex.getMessage();
-		}
-		return " ==>> SERIAL SETUP SUCCESS AND MESSAGE SEND!";
-	}
 
 	/**
+	 * =============================================================
 	 * RaspiPin.GPIO_05 = pin 18 GPIO_24
+	 * =============================================================
 	 */
 	private GpioPinDigitalOutput getLed() {
 		Collection<GpioPin> gpioPins = gpio.getProvisionedPins();
@@ -148,4 +97,9 @@ public class GPIOServiceController {
 		}
 		return myLed;
 	}
+	/**
+	 * ===========================================================================================
+	 * END legacy
+	 * ===========================================================================================
+	 */
 }
